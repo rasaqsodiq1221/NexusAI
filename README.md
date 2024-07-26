@@ -12,6 +12,7 @@ Follow these steps to set up and run the project on your local machine:
 
 2. **Clone your forked repository**
 `git clone https://github.com/your-github-username/your-repo-name.git`
+- change the directory to your repo
 `cd your-repo-name`
 
 *Note: Replace `your-github-username` with your actual GitHub username*
