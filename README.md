@@ -70,14 +70,14 @@ To keep your fork updated with the original repository:
 1. Add the original repository as an upstream remote:
 `git remote add upstream https://github.com/rasaqsodiq1221/NexusAI.git`
 
-2. Fetch the latest changes from the upstream repository:
+3. Fetch the latest changes from the upstream repository:
 `git fetch upstream`
 
-3. Merge the changes into your local main branch:
+4. Merge the changes into your local main branch:
 `git checkout main`
 `git merge upstream/main`
 
-4. Push the updated main branch to your fork:
+5. Push the updated main branch to your fork:
 `git push origin main`
 
 
