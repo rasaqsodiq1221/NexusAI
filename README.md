@@ -12,6 +12,7 @@ Follow these steps to set up and run the project on your local machine:
 
 2. **Clone your forked repository**
 `git clone https://github.com/your-github-username/your-repo-name.git`
+- change the directory to your repo
 `cd your-repo-name`
 
 *Note: Replace `your-github-username` with your actual GitHub username*
@@ -19,12 +20,13 @@ Follow these steps to set up and run the project on your local machine:
 
 3. **Set up a virtual environment** 
 `python -m venv venv`
+- then
 `venv\Scripts\activate`
 
-4. **Install required packages**
+5. **Install required packages**
 `pip install -r requirements.txt`
 
-5. **Set up API keys**
+6. **Set up API keys**
    - Create a `.env` file in the project root directory
    - Add your API keys to the `.env` file:
      ```
@@ -34,7 +36,7 @@ Follow these steps to set up and run the project on your local machine:
      ```
    - Replace `your_gemini_api_key`, `your_coursera_app_key`, and `your_coursera_app_secret` with your actual API keys
 
-6. **How to obtain API keys**
+7. **How to obtain API keys**
    - For Gemini API:
      - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
      - Create or select a project
@@ -53,7 +55,7 @@ Follow these steps to set up and run the project on your local machine:
      - Click Save; you'll see "App created" and will be redirected to your app's page containing the API key and secret credentials.
      - To view an API key or secret, click the Show button in the Credentials section.
 
-7. **Run the program**
+8. **Run the program**
 `python tech_learning_path.py`
 
 1. **Follow the prompts**
@@ -70,14 +72,15 @@ To keep your fork updated with the original repository:
 1. Add the original repository as an upstream remote:
 `git remote add upstream https://github.com/rasaqsodiq1221/NexusAI.git`
 
-2. Fetch the latest changes from the upstream repository:
+3. Fetch the latest changes from the upstream repository:
 `git fetch upstream`
 
-3. Merge the changes into your local main branch:
+4. Merge the changes into your local main branch:
 `git checkout main`
+- then
 `git merge upstream/main`
 
-4. Push the updated main branch to your fork:
+6. Push the updated main branch to your fork:
 `git push origin main`
 
 
