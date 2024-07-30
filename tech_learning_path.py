@@ -1,19 +1,37 @@
+import sys
+import threading
+import time
 import os
 import base64
 from dotenv import load_dotenv
 import requests
 import google.generativeai as genai
 
+def suppress_stderr(func):
+    def wrapper(*args, **kwargs):
+        original_stderr = sys.stderr
+        sys.stderr = open(os.devnull, 'w')
+        try:
+            return func(*args, **kwargs)
+        finally:
+            sys.stderr.close()
+            sys.stderr = original_stderr
+    return wrapper
+
 # Load environment variables
 load_dotenv()
 
 # Set up Gemini API
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    print("Gemini API key not found. Please set the GEMINI_API_KEY environment variable.")
-    exit()
+@suppress_stderr
+def configure_genai():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("Gemini API key not found. Please set the GEMINI_API_KEY environment variable.")
+        exit()
+    genai.configure(api_key=api_key)
 
-genai.configure(api_key=api_key)
+# Call this function instead of directly configuring genai
+configure_genai()
 
 # Define tech interests
 tech_interests = [
@@ -103,6 +121,24 @@ Please structure your response clearly with headers and bullet points for easy r
     except Exception as e:
         print(f"Error generating AI suggestions: {str(e)}")
         return "Unable to generate AI suggestions at this time."
+    
+def loading_animation():
+    print("Generating personalized learning path...")
+    while not loading_done.is_set():
+        for i in range(4):
+            sys.stdout.write('\rloading' + '.' * i + ' ' * (3-i))
+            sys.stdout.flush()
+            time.sleep(0.5)
+    sys.stdout.write('\rPersonalized learning path generated!     \n')
+
+def start_loading():
+    global loading_done
+    loading_done = threading.Event()
+    threading.Thread(target=loading_animation, daemon=True).start()
+
+def stop_loading():
+    loading_done.set()
+    time.sleep(0.5)  # Give a moment for the last animation cycle to complete
 
 def main():
     print("Tech Learning Path Prompt System")
@@ -131,10 +167,13 @@ def main():
     selected_interests = [tech_interests[int(i.strip()) - 1] for i in selected_indices if i.strip().isdigit() and 0 < int(i.strip()) <= len(tech_interests)]
 
     if selected_interests:
-        print("\nGenerating personalized learning path...")
-        
-        # Get AI suggestions
-        ai_suggestions = get_ai_suggestions(selected_interests)
+        start_loading()
+        try:
+            # Get AI suggestions
+            ai_suggestions = get_ai_suggestions(selected_interests)
+        finally:
+            stop_loading()
+
         print("\nAI-Generated Learning Path:")
         print(ai_suggestions)
 
@@ -154,5 +193,71 @@ def main():
     else:
         print("No valid interests selected.")
 
+     # Add functionality for regenerating prompts, reselecting interests, and ending the program
+    while True:
+        user_input = input("\nPress 'r' to regenerate prompt, 's' to reselect interests, or 'q' to quit: ")
+        if user_input == 'r':
+            # Regenerate the prompt using the same selected interests
+            start_loading()
+            try:
+                ai_suggestions = get_ai_suggestions(selected_interests)
+            finally:
+                stop_loading()
+            print("\nAI-Generated Learning Path (Regenerated):")
+            print(ai_suggestions)
+             # Get course recommendations
+            print("\nRecommended Coursera Courses:")
+            for interest in selected_interests:
+                print(f"\nCourses for {interest}:")
+
+                coursera_courses = get_coursera_courses(interest, coursera_access_token)
+                if coursera_courses:
+                    for course in coursera_courses:
+                        print(f"- {course['name']}")
+                        print(f"  URL: {course['url']}")
+                else:
+                    print("No courses found for this interest.")
+        elif user_input == 's':
+            # Reselect interests
+            selected_interests.clear()  # Clear previous selections
+            print("Available tech interests:")
+            for i, interest in enumerate(tech_interests, 1):
+                print(f"{i}. {interest}")
+            selected_indices = input("Enter the numbers of your interests (comma-separated): ").split(',')
+            for i in selected_indices:
+                try:
+                    index = int(i.strip()) - 1
+                    if 0 <= index < len(tech_interests):
+                        selected_interests.append(tech_interests[index])
+                    else:
+                        print(f"Invalid index: {i}")
+                except ValueError:
+                    print(f"Invalid input: {i}")
+            if selected_interests:
+                print("Interests updated successfully!")
+                # Regenerate prompt with updated interests
+                start_loading()
+                try:
+                    ai_suggestions = get_ai_suggestions(selected_interests)
+                finally:
+                    stop_loading()
+                print("\nAI-Generated Learning Path:")
+                print(ai_suggestions)
+                 # Get course recommendations
+                print("\nRecommended Coursera Courses:")
+                for interest in selected_interests:
+                    print(f"\nCourses for {interest}:")
+
+                    coursera_courses = get_coursera_courses(interest, coursera_access_token)
+                    if coursera_courses:
+                        for course in coursera_courses:
+                            print(f"- {course['name']}")
+                            print(f"  URL: {course['url']}")
+                    else:
+                        print("No courses found for this interest.")
+        elif user_input == 'q':
+            break
+        else:
+            print("Invalid input. Please enter 'r', 's', or 'q'.")
 if __name__ == "__main__":
     main()
