@@ -18,10 +18,8 @@ def suppress_stderr(func):
             sys.stderr = original_stderr
     return wrapper
 
-# Load environment variables
 load_dotenv()
 
-# Set up Gemini API
 @suppress_stderr
 def configure_genai():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -30,22 +28,12 @@ def configure_genai():
         exit()
     genai.configure(api_key=api_key)
 
-# Call this function instead of directly configuring genai
 configure_genai()
 
-# Define tech interests
 tech_interests = [
-    "Web Development", 
-    "Mobile App Development",
-    "Data Science",
-    "Machine Learning",
-    "Artificial Intelligence",
-    "Cybersecurity",
-    "Cloud Computing",
-    "DevOps",
-    "Blockchain",
-    "Internet of Things (IoT)"
-    # ... (You can add more interests from the original list)
+    "Web Development", "Mobile App Development", "Data Science", "Machine Learning",
+    "Artificial Intelligence", "Cybersecurity", "Cloud Computing", "DevOps",
+    "Blockchain", "Internet of Things (IoT)"
 ]
 
 def get_coursera_access_token(app_key, app_secret):
@@ -121,7 +109,7 @@ Please structure your response clearly with headers and bullet points for easy r
     except Exception as e:
         print(f"Error generating AI suggestions: {str(e)}")
         return "Unable to generate AI suggestions at this time."
-    
+
 def loading_animation():
     print("Generating personalized learning path...")
     while not loading_done.is_set():
@@ -138,13 +126,45 @@ def start_loading():
 
 def stop_loading():
     loading_done.set()
-    time.sleep(0.5)  # Give a moment for the last animation cycle to complete
+    time.sleep(0.5)
+
+def print_interests():
+    print("Available tech interests:")
+    for i, interest in enumerate(tech_interests, 1):
+        print(f"{i}. {interest}")
+
+def get_selected_interests():
+    selected_indices = input("Enter the numbers of your interests (comma-separated): ").split(',')
+    return [tech_interests[int(i.strip()) - 1] for i in selected_indices if i.strip().isdigit() and 0 < int(i.strip()) <= len(tech_interests)]
+
+def print_coursera_courses(interest, courses):
+    print(f"\nCourses for {interest}:")
+    if courses:
+        for course in courses:
+            print(f"- {course['name']}")
+            print(f"  URL: {course['url']}")
+    else:
+        print("No courses found for this interest.")
+
+def generate_and_print_content(selected_interests, coursera_access_token):
+    start_loading()
+    try:
+        ai_suggestions = get_ai_suggestions(selected_interests)
+    finally:
+        stop_loading()
+
+    print("\nAI-Generated Learning Path:")
+    print(ai_suggestions)
+
+    print("\nRecommended Coursera Courses:")
+    for interest in selected_interests:
+        coursera_courses = get_coursera_courses(interest, coursera_access_token)
+        print_coursera_courses(interest, coursera_courses)
 
 def main():
     print("Tech Learning Path Prompt System")
     print("--------------------------------")
 
-    # Coursera API setup
     coursera_app_key = os.getenv("COURSERA_APP_KEY")
     coursera_app_secret = os.getenv("COURSERA_APP_SECRET")
 
@@ -152,112 +172,33 @@ def main():
         print("Coursera API credentials not found. Please set the COURSERA_APP_KEY and COURSERA_APP_SECRET environment variables.")
         exit()
 
-    # Get Coursera access token
     coursera_access_token = get_coursera_access_token(coursera_app_key, coursera_app_secret)
     if not coursera_access_token:
         print("Failed to obtain Coursera access token.")
         exit()
 
-    # User input
-    print("Available tech interests:")
-    for i, interest in enumerate(tech_interests, 1):
-        print(f"{i}. {interest}")
-
-    selected_indices = input("Enter the numbers of your interests (comma-separated): ").split(',')
-    selected_interests = [tech_interests[int(i.strip()) - 1] for i in selected_indices if i.strip().isdigit() and 0 < int(i.strip()) <= len(tech_interests)]
+    print_interests()
+    selected_interests = get_selected_interests()
 
     if selected_interests:
-        start_loading()
-        try:
-            # Get AI suggestions
-            ai_suggestions = get_ai_suggestions(selected_interests)
-        finally:
-            stop_loading()
-
-        print("\nAI-Generated Learning Path:")
-        print(ai_suggestions)
-
-        # Get course recommendations
-        print("\nRecommended Coursera Courses:")
-        for interest in selected_interests:
-            print(f"\nCourses for {interest}:")
-            
-            coursera_courses = get_coursera_courses(interest, coursera_access_token)
-            if coursera_courses:
-                for course in coursera_courses:
-                    print(f"- {course['name']}")
-                    print(f"  URL: {course['url']}")
-            else:
-                print("No courses found for this interest.")
-
+        generate_and_print_content(selected_interests, coursera_access_token)
     else:
         print("No valid interests selected.")
 
-     # Add functionality for regenerating prompts, reselecting interests, and ending the program
     while True:
         user_input = input("\nPress 'r' to regenerate prompt, 's' to reselect interests, or 'q' to quit: ")
         if user_input == 'r':
-            # Regenerate the prompt using the same selected interests
-            start_loading()
-            try:
-                ai_suggestions = get_ai_suggestions(selected_interests)
-            finally:
-                stop_loading()
-            print("\nAI-Generated Learning Path (Regenerated):")
-            print(ai_suggestions)
-             # Get course recommendations
-            print("\nRecommended Coursera Courses:")
-            for interest in selected_interests:
-                print(f"\nCourses for {interest}:")
-
-                coursera_courses = get_coursera_courses(interest, coursera_access_token)
-                if coursera_courses:
-                    for course in coursera_courses:
-                        print(f"- {course['name']}")
-                        print(f"  URL: {course['url']}")
-                else:
-                    print("No courses found for this interest.")
+            generate_and_print_content(selected_interests, coursera_access_token)
         elif user_input == 's':
-            # Reselect interests
-            selected_interests.clear()  # Clear previous selections
-            print("Available tech interests:")
-            for i, interest in enumerate(tech_interests, 1):
-                print(f"{i}. {interest}")
-            selected_indices = input("Enter the numbers of your interests (comma-separated): ").split(',')
-            for i in selected_indices:
-                try:
-                    index = int(i.strip()) - 1
-                    if 0 <= index < len(tech_interests):
-                        selected_interests.append(tech_interests[index])
-                    else:
-                        print(f"Invalid index: {i}")
-                except ValueError:
-                    print(f"Invalid input: {i}")
+            print_interests()
+            selected_interests = get_selected_interests()
             if selected_interests:
                 print("Interests updated successfully!")
-                # Regenerate prompt with updated interests
-                start_loading()
-                try:
-                    ai_suggestions = get_ai_suggestions(selected_interests)
-                finally:
-                    stop_loading()
-                print("\nAI-Generated Learning Path:")
-                print(ai_suggestions)
-                 # Get course recommendations
-                print("\nRecommended Coursera Courses:")
-                for interest in selected_interests:
-                    print(f"\nCourses for {interest}:")
-
-                    coursera_courses = get_coursera_courses(interest, coursera_access_token)
-                    if coursera_courses:
-                        for course in coursera_courses:
-                            print(f"- {course['name']}")
-                            print(f"  URL: {course['url']}")
-                    else:
-                        print("No courses found for this interest.")
+                generate_and_print_content(selected_interests, coursera_access_token)
         elif user_input == 'q':
             break
         else:
             print("Invalid input. Please enter 'r', 's', or 'q'.")
+
 if __name__ == "__main__":
     main()
