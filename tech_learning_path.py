@@ -1,16 +1,19 @@
 import sys
 import threading
 import time
-import os
 import base64
-from dotenv import load_dotenv
 import requests
 import google.generativeai as genai
+
+# IMPORTANT: Replace these with your actual API keys
+GEMINI_API_KEY = "AIzaSyCtpm-vvlQ3DbxG4ubEq7Qq1ZE0qXS8RUc"
+COURSERA_APP_KEY = "mq52JLowu6ePfVMRTGR6wJgqumnoNGJ0LWYplzASA1XhLz9z"
+COURSERA_APP_SECRET = "iXTg2NnwFErsQLEY6Qk5KDaqnrAkwIykfYe4uKWqu53oAKKaBYLnAp1WN70vA1FG"
 
 def suppress_stderr(func):
     def wrapper(*args, **kwargs):
         original_stderr = sys.stderr
-        sys.stderr = open(os.devnull, 'w')
+        sys.stderr = open('/dev/null' if sys.platform != 'win32' else 'NUL', 'w')
         try:
             return func(*args, **kwargs)
         finally:
@@ -18,15 +21,12 @@ def suppress_stderr(func):
             sys.stderr = original_stderr
     return wrapper
 
-load_dotenv()
-
 @suppress_stderr
 def configure_genai():
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Gemini API key not found. Please set the GEMINI_API_KEY environment variable.")
+    if not GEMINI_API_KEY:
+        print("Gemini API key not found. Please set the GEMINI_API_KEY variable.")
         exit()
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=GEMINI_API_KEY)
 
 configure_genai()
 
@@ -36,9 +36,9 @@ tech_interests = [
     "Blockchain", "Internet of Things (IoT)"
 ]
 
-def get_coursera_access_token(app_key, app_secret):
+def get_coursera_access_token():
     url = "https://api.coursera.com/oauth2/client_credentials/token"
-    auth_string = f"{app_key}:{app_secret}"
+    auth_string = f"{COURSERA_APP_KEY}:{COURSERA_APP_SECRET}"
     encoded_auth = base64.b64encode(auth_string.encode()).decode()
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -165,14 +165,11 @@ def main():
     print("Tech Learning Path Prompt System")
     print("--------------------------------")
 
-    coursera_app_key = os.getenv("COURSERA_APP_KEY")
-    coursera_app_secret = os.getenv("COURSERA_APP_SECRET")
-
-    if not all([coursera_app_key, coursera_app_secret]):
-        print("Coursera API credentials not found. Please set the COURSERA_APP_KEY and COURSERA_APP_SECRET environment variables.")
+    if not all([COURSERA_APP_KEY, COURSERA_APP_SECRET]):
+        print("Coursera API credentials not found. Please set the COURSERA_APP_KEY and COURSERA_APP_SECRET variables.")
         exit()
 
-    coursera_access_token = get_coursera_access_token(coursera_app_key, coursera_app_secret)
+    coursera_access_token = get_coursera_access_token()
     if not coursera_access_token:
         print("Failed to obtain Coursera access token.")
         exit()
