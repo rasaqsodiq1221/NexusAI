@@ -5,10 +5,6 @@ import base64
 import requests
 import google.generativeai as genai
 
-# IMPORTANT: Replace these with your actual API keys
-GEMINI_API_KEY = "AIzaSyCtpm-vvlQ3DbxG4ubEq7Qq1ZE0qXS8RUc"
-COURSERA_APP_KEY = "mq52JLowu6ePfVMRTGR6wJgqumnoNGJ0LWYplzASA1XhLz9z"
-COURSERA_APP_SECRET = "iXTg2NnwFErsQLEY6Qk5KDaqnrAkwIykfYe4uKWqu53oAKKaBYLnAp1WN70vA1FG"
 
 def suppress_stderr(func):
     def wrapper(*args, **kwargs):
